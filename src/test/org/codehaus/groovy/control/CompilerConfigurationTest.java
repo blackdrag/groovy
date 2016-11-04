@@ -130,8 +130,7 @@ public class CompilerConfigurationTest extends GroovyTestCase {
         initJoint.put("somekey", "somevalue");
         init.setJointCompilationOptions(initJoint);
 
-        final ParserPluginFactory initPPF = ParserPluginFactory.newInstance();
-        init.setPluginFactory(initPPF);
+        init.setPluginFactory(null);
 
         assertEquals(WarningMessage.POSSIBLE_ERRORS, init.getWarningLevel());
         assertEquals(true, init.getDebug());
@@ -151,7 +150,7 @@ public class CompilerConfigurationTest extends GroovyTestCase {
         assertEquals(initTDFile, init.getTargetDirectory());
         assertEquals(".jpp", init.getDefaultScriptExtension());
         assertEquals(initJoint, init.getJointCompilationOptions());
-        assertEquals(initPPF, init.getPluginFactory());
+        assertEquals(null, init.getPluginFactory());
 
         final CompilerConfiguration config = new CompilerConfiguration(init);
 
@@ -172,7 +171,7 @@ public class CompilerConfigurationTest extends GroovyTestCase {
         assertEquals(initTDFile, config.getTargetDirectory());
         assertEquals(".jpp", config.getDefaultScriptExtension());
         assertEquals(initJoint, config.getJointCompilationOptions());
-        assertEquals(initPPF, config.getPluginFactory());
+        assertEquals(null, config.getPluginFactory());
 
     }
 

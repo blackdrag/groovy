@@ -1,0 +1,74 @@
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+def generatedDirectory = "${buildDir}/generated-sources"
+def antlrSubpath = "/src/main/java/org/codehaus/groovy/antlr"
+
+sourceSets {
+    main {
+        java {
+            srcDir "$generatedDirectory/src/main/java"
+        }
+    }
+}
+
+configurations {
+    antlr
+}
+
+dependencies {
+    compile "antlr:antlr:$antlrVersion"
+    antlr "org.apache.ant:ant-antlr:$antVersion"
+    compile files(generatedDirectory)
+    compile ":classes"
+}
+
+task ensureGrammars {
+    description = 'Ensure all the Antlr generated files are up to date.'
+    ext.antlrDirectory = "$projectDir$antlrSubpath"
+    ext.groovyParserDirectory = "$ext.antlrDirectory/parser"
+    ext.javaParserDirectory = "$ext.antlrDirectory/java"
+    ext.genPath = "$generatedDirectory$antlrSubpath"
+    ext.groovyOutDir = "$ext.genPath/parser"
+    ext.javaOutDir = "$ext.genPath/java"
+    inputs.dir(antlrDirectory)
+    outputs.dir(groovyOutDir)
+    outputs.dir(javaOutDir)
+    doFirst {
+        new File(groovyOutDir).mkdirs()
+        new File(javaOutDir).mkdirs()
+        ant {
+            taskdef(name: 'antlr',
+                    classname: 'org.apache.tools.ant.taskdefs.optional.ANTLR',
+                    classpath: configurations.antlr.asPath)
+
+            mkdir dir: ext.groovyParserDirectory
+            antlr(target: "$ext.antlrDirectory/groovy.g", outputdirectory: ext.groovyOutDir) {
+                classpath path: configurations.compile.asPath
+            }
+            antlr(target: "$ext.javaParserDirectory/java.g", outputdirectory: ext.javaOutDir) {
+                classpath path: configurations.compile.asPath
+            }
+        }
+    }
+}
+
+compileJava {
+    dependsOn ensureGrammars//, rootProject.compileJava
+}

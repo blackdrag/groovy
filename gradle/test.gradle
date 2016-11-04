@@ -44,8 +44,10 @@ allprojects {
 
     sourceSets {
         test {
-            groovy {
-                srcDirs += 'src/spec/test'
+            if (plugins.hasPlugin('groovy')) {
+                groovy {
+                    srcDirs += 'src/spec/test'
+                }
             }
             resources {
                 srcDirs += 'src/spec/test-resources'

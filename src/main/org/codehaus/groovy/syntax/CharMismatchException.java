@@ -16,18 +16,32 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-dependencies {
-    compile rootProject
-    testCompile rootProject.sourceSets.test.runtimeClasspath
-    compile project(':groovy-templates')
-    testCompile project(':groovy-test')
-    testCompile project(':groovy-ant')
-    testCompile "org.apache.ant:ant-testutil:$antVersion"
-    compile project(":groovy-parser-antlr2")
-}
 
-compileJava {
-    doLast {
-        mkdir "$sourceSets.main.output.classesDir/META-INF"
+package org.codehaus.groovy.syntax;
+
+/**
+ * Indicates a parsing failure in the lexer at a certain char
+ * optionally offering the expected alternative char.
+ */
+public class CharMismatchException extends SyntaxException {
+    private char badChar;
+    private char expectedChar;
+
+    public CharMismatchException(char badChar, char expectedChar, String message, Throwable cause, int startLine, int startColumn, int endLine, int endColumn) {
+        super(message, cause, startLine, startColumn, endLine, endColumn);
+        this.badChar = badChar;
+        this.expectedChar = expectedChar;
+    }
+
+    public char getBadChar() {
+        return badChar;
+    }
+
+    /**
+     * returns the expected char or NO_CHAR if not available
+     * @see Chars#NO_CHAR
+     */
+    public char getExpectedChar() {
+        return expectedChar;
     }
 }

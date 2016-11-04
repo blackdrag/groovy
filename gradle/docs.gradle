@@ -99,9 +99,11 @@ groovydocAll {
     classpath = groovydoc.classpath
     groovyClasspath = groovydoc.groovyClasspath
     subprojects.each { sp ->
-        source += sp.groovydoc.source
-        classpath += sp.groovydoc.classpath
-        groovyClasspath += sp.groovydoc.groovyClasspath
+        if (sp.plugins.hasPlugin('groovy')) {
+            source += sp.groovydoc.source
+            classpath += sp.groovydoc.classpath
+            groovyClasspath += sp.groovydoc.groovyClasspath
+        }
     }
 }
 groovydocAll groovydocSpec

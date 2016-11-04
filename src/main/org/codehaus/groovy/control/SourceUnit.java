@@ -18,11 +18,6 @@
  */
 package org.codehaus.groovy.control;
 
-import antlr.CharScanner;
-import antlr.MismatchedCharException;
-import antlr.MismatchedTokenException;
-import antlr.NoViableAltException;
-import antlr.NoViableAltForCharException;
 import groovy.lang.GroovyClassLoader;
 import org.codehaus.groovy.GroovyBugError;
 import org.codehaus.groovy.ast.ModuleNode;
@@ -33,8 +28,13 @@ import org.codehaus.groovy.control.io.URLReaderSource;
 import org.codehaus.groovy.control.messages.Message;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
+import org.codehaus.groovy.syntax.CharMismatchException;
+import org.codehaus.groovy.syntax.Chars;
 import org.codehaus.groovy.syntax.Reduction;
 import org.codehaus.groovy.syntax.SyntaxException;
+import org.codehaus.groovy.syntax.Token;
+import org.codehaus.groovy.syntax.TokenMismatchException;
+import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.tools.Utilities;
 
 import java.io.File;
@@ -151,30 +151,25 @@ public class SourceUnit extends ProcessingUnit {
         // to report an unexpected EOF. Perhaps this implementation misses some.
         // If you find another way, please add it.
         if (getErrorCollector().hasErrors()) {
-            Message last = (Message) getErrorCollector().getLastError();
+            Message last = getErrorCollector().getLastError();
             Throwable cause = null;
             if (last instanceof SyntaxErrorMessage) {
-                cause = ((SyntaxErrorMessage) last).getCause().getCause();
+                cause = ((SyntaxErrorMessage) last).getCause();
             }
             if (cause != null) {
-                if (cause instanceof NoViableAltException) {
-                    return isEofToken(((NoViableAltException) cause).token);
-                } else if (cause instanceof NoViableAltForCharException) {
-                    char badChar = ((NoViableAltForCharException) cause).foundChar;
-                    return badChar == CharScanner.EOF_CHAR;
-                } else if (cause instanceof MismatchedCharException) {
-                    char badChar = (char) ((MismatchedCharException) cause).foundChar;
-                    return badChar == CharScanner.EOF_CHAR;
-                } else if (cause instanceof MismatchedTokenException) {
-                    return isEofToken(((MismatchedTokenException) cause).token);
+                if (cause instanceof TokenMismatchException) {
+                    return isEofToken(((TokenMismatchException) cause).getUnexpectedToken());
+                } else if (cause instanceof CharMismatchException) {
+                    char badChar = ((CharMismatchException) cause).getBadChar();
+                    return badChar == Chars.EOF_CHAR;
                 }
             }
         }
         return false;
     }
 
-    protected boolean isEofToken(antlr.Token token) {
-        return token.getType() == antlr.Token.EOF_TYPE;
+    protected boolean isEofToken(Token token) {
+        return token.getType() == Types.EOF;
     }
 
 

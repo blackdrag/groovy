@@ -16,18 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-dependencies {
-    compile rootProject
-    testCompile rootProject.sourceSets.test.runtimeClasspath
-    compile project(':groovy-templates')
-    testCompile project(':groovy-test')
-    testCompile project(':groovy-ant')
-    testCompile "org.apache.ant:ant-testutil:$antVersion"
-    compile project(":groovy-parser-antlr2")
-}
 
-compileJava {
-    doLast {
-        mkdir "$sourceSets.main.output.classesDir/META-INF"
-    }
+package org.codehaus.groovy.syntax;
+
+/**
+ * collection of char constants used by error messages
+ */
+public final class Chars {
+    public static final char NO_CHAR = '\u0000';
+    public static final char EOF_CHAR = '\uffff';
 }

@@ -68,9 +68,6 @@ File javaHome = new File(System.getProperty('java.home'))
 logger.lifecycle "Using Java from $javaHome (version ${System.getProperty('java.version')})"
 indyBanner()
 
-// TODO use antlr plugin
-//apply plugin: 'antlr'
-
 allprojects {
     apply plugin: 'java'
 
@@ -84,12 +81,14 @@ allprojects {
         jcenter()
         maven { url 'http://dl.bintray.com/melix/thirdparty-apache' } // openbeans
     }
-
-    apply plugin: 'groovy'
     apply from: "${rootProject.projectDir}/gradle/indy.gradle"
     if (JavaVersion.current().java7Compatible) {
         apply from: "${rootProject.projectDir}/gradle/asciidoctor.gradle"
     }
+}
+
+configure(allprojects - project("groovy-parser-antlr2")){
+    apply plugin: 'groovy'
 }
 
 // todo: use the conventional "resources" directory for classpath resources
@@ -137,7 +136,6 @@ configurations {
     tools
     examplesCompile.extendsFrom compile
     examplesRuntime.extendsFrom examplesCompile
-    antlr
     spec
 }
 
@@ -171,7 +169,6 @@ ext {
 }
 
 dependencies {
-    compile "antlr:antlr:$antlrVersion"
     compile "org.ow2.asm:asm:$asmVersion"
     compile "org.ow2.asm:asm-analysis:$asmVersion"
     compile "org.ow2.asm:asm-commons:$asmVersion"
@@ -191,7 +188,7 @@ dependencies {
     compile("org.apache.ivy:ivy:$ivyVersion") {
         transitive = false
     }
-    compile files("${buildDir}/generated-classes")
+    //compile files("${buildDir}/generated-classes")
 
     runtime("org.codehaus.gpars:gpars:$gparsVersion") {
         exclude(group: 'org.codehaus.groovy', module: 'groovy-all')
@@ -237,23 +234,19 @@ dependencies {
         exclude(module: 'geronimo-j2ee-connector_1.5_spec')
     }
 
-// TODO use antlr plugin
-//    antlr "antlr:antlr:$antlrVersion"
-    antlr "org.apache.ant:ant-antlr:$antVersion"
-
     testCompile project(':groovy-ant')
     testCompile project(':groovy-test')
     testCompile project(':groovy-macro')
 }
 
-ext.generatedDirectory = "${buildDir}/generated-sources"
+//ext.generatedDirectory = "${buildDir}/generated-sources"
 
 sourceSets {
     main {
         java {
             srcDirs = [
                     'src/main',
-                    "$generatedDirectory/src/main"
+                    //"$generatedDirectory/src/main"
             ]
             fileTree('src/main/groovy/ui').matching {
                 exclude 'GroovyMain.java', 'GroovySocketServer.java'
@@ -264,7 +257,7 @@ sourceSets {
         groovy {
             srcDirs = [
                     'src/main',
-                    "$generatedDirectory/src/main"
+                    //"$generatedDirectory/src/main"
             ]
         }
         resources {
@@ -330,36 +323,6 @@ tasks.withType(Jar) {
     }
 }
 
-task ensureGrammars {
-    description = 'Ensure all the Antlr generated files are up to date.'
-    ext.antlrDirectory = "$projectDir/src/main/org/codehaus/groovy/antlr"
-    ext.groovyParserDirectory = "$ext.antlrDirectory/parser"
-    ext.javaParserDirectory = "$ext.antlrDirectory/java"
-    ext.genPath = "$generatedDirectory/src/main/org/codehaus/groovy/antlr"
-    ext.groovyOutDir = "$ext.genPath/parser"
-    ext.javaOutDir = "$ext.genPath/java"
-    inputs.dir(antlrDirectory)
-    outputs.dir(groovyOutDir)
-    outputs.dir(javaOutDir)
-    doFirst {
-        new File(groovyOutDir).mkdirs()
-        new File(javaOutDir).mkdirs()
-        ant {
-            taskdef(name: 'antlr',
-                    classname: 'org.apache.tools.ant.taskdefs.optional.ANTLR',
-                    classpath: configurations.antlr.asPath)
-
-            mkdir dir: ext.groovyParserDirectory
-            antlr(target: "$ext.antlrDirectory/groovy.g", outputdirectory: ext.groovyOutDir) {
-                classpath path: configurations.compile.asPath
-            }
-            antlr(target: "$ext.javaParserDirectory/java.g", outputdirectory: ext.javaOutDir) {
-                classpath path: configurations.compile.asPath
-            }
-        }
-    }
-}
-
 apply from: 'gradle/utils.gradle'
 apply from: 'gradle/wrapper.gradle'
 
@@ -389,7 +352,7 @@ task dgmConverter(dependsOn:compileJava) {
 }
 
 compileJava {
-    dependsOn ensureGrammars
+    //dependsOn ":groovy-parser-antlr2:ensureGrammars"
     options.fork(memoryMaximumSize: javacMain_mx)
 }
 
@@ -397,7 +360,7 @@ compileJava {
     // on classpath. This "bootstrap jar" contains the minimal compiler, without .groovy compiled files
 
 task bootstrapJar {
-    dependsOn compileJava, dgmConverter
+    dependsOn ":groovy-parser-antlr2:compileJava", dgmConverter
 
     def destinationDir = file("$buildDir/bootstrap")
     def archiveName = "groovy-${version}-bootstrap.jar"
@@ -408,10 +371,10 @@ task bootstrapJar {
         // as it will invalidate the task if classpath changes, which will
         // happen once Groovy files are compiled
         destinationDir.mkdirs()
-        ant.jar(
-                destfile: archivePath,
-                basedir: file(sourceSets.main.output.classesDir)
-        )
+        ant.jar(destfile: archivePath) {
+            fileset(dir: file(sourceSets.main.output.classesDir))
+            fileset(dir: new File(project("groovy-parser-antlr2").buildDir,"classes/main"))
+        }
     }
     inputs.property('indy', useIndy())
     inputs.files sourceSets.main.allJava

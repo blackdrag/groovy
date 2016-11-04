@@ -29,6 +29,7 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
@@ -44,7 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.codehaus.groovy.antlr.AntlrParserPlugin.getDefaultValueForPrimitive;
 import static org.codehaus.groovy.ast.ClassHelper.make;
 import static org.codehaus.groovy.ast.expr.ArgumentListExpression.EMPTY_ARGUMENTS;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.constX;
@@ -174,7 +174,8 @@ public class AutoImplementASTTransformation extends AbstractASTTransformation {
         } else if (exception != null) {
             body.addStatement(throwS(ctorX(exception, message == null ? EMPTY_ARGUMENTS : constX(message))));
         } else {
-            Expression result = getDefaultValueForPrimitive(returnType);
+            Expression result = ConstantExpression.
+                    getDefaultValueForPrimitive(returnType);
             if (result != null) {
                 body.addStatement(returnS(result));
             }

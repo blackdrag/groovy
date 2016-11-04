@@ -24,6 +24,7 @@ import org.codehaus.groovy.control.messages.WarningMessage;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.util.*;
 
 /**
@@ -74,7 +75,27 @@ public class CompilerConfiguration {
      *  default context, then you probably just want <code>new CompilerConfiguration()</code>. 
      */
     public static final CompilerConfiguration DEFAULT = new CompilerConfiguration();
-    
+    private static final ParserPluginFactory ANTLR4_PARSER, ANTLR2_PARSER;
+    static {
+        ParserPluginFactory parser;
+        try {
+            Class parserClass = Class.forName("org.codehaus.groovy.antlr.AntlrParserPluginFactory");
+            parser = (ParserPluginFactory) parserClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            System.err.println("antlr2 not found");
+            parser = null;
+        }
+        ANTLR2_PARSER = parser;
+        try {
+            Class parserClass = Class.forName("org.apache.groovy.parser.antlr4.Antlr4PluginFactory");
+            parser = (ParserPluginFactory) parserClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            System.err.println("antlr4 not found");
+            parser = null;
+        }
+        ANTLR4_PARSER = parser;
+    }
+
     /**
      * See {@link WarningMessage} for levels.
      */
@@ -225,6 +246,9 @@ public class CompilerConfiguration {
             options.put(INVOKEDYNAMIC, Boolean.TRUE);
         }
         setOptimizationOptions(options);
+
+        boolean antlr4 = Boolean.parseBoolean(safeGetSystemProperty("groovy.antlr4"));
+        setPluginFactory(antlr4? ANTLR4_PARSER : ANTLR2_PARSER);
     }
 
     /**
@@ -697,9 +721,6 @@ public class CompilerConfiguration {
     }
 
     public ParserPluginFactory getPluginFactory() {
-        if (pluginFactory == null) {
-            pluginFactory = ParserPluginFactory.newInstance();
-        }
         return pluginFactory;
     }
 

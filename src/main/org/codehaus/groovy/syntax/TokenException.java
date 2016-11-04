@@ -18,7 +18,7 @@
  */
 package org.codehaus.groovy.syntax;
 
-public class TokenException extends SyntaxException {
+public abstract class TokenException extends SyntaxException {
     public TokenException(String message, Token token) {
         super(
                 (token == null)

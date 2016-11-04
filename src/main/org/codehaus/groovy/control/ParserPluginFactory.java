@@ -18,37 +18,11 @@
  */
 package org.codehaus.groovy.control;
 
-import org.codehaus.groovy.antlr.AntlrParserPluginFactory;
-
 /**
  * A factory of parser plugin instances
  *
  */
 public abstract class ParserPluginFactory {
-
-    /**
-     * Creates a new instance of {@link ParserPluginFactory}.
-     *
-     * <p>The <code>useNewParser</code> parameter is not used, and this method
-     * is kept for backward compatibility.
-     *
-     * @param useNewParser unused.
-     * @return the new parser factory.
-     * @deprecated use {@link #newInstance()}
-     */
-    @Deprecated
-    public static ParserPluginFactory newInstance(boolean useNewParser) {
-        return newInstance();
-    }
-
-    /**
-     * Creates a new instance of {@link ParserPluginFactory}.
-     *
-     * @return the new parser factory.
-     */
-    public static ParserPluginFactory newInstance() {
-        return new AntlrParserPluginFactory();
-    }
 
     public abstract ParserPlugin createParserPlugin();
 }

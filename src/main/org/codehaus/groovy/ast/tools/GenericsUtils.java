@@ -18,13 +18,9 @@
  */
 package org.codehaus.groovy.ast.tools;
 
-import antlr.RecognitionException;
-import antlr.TokenStreamException;
+import groovy.lang.GroovyClassLoader;
 import groovy.transform.stc.IncorrectTypeHintException;
 import org.codehaus.groovy.GroovyBugError;
-import org.codehaus.groovy.antlr.AntlrParserPlugin;
-import org.codehaus.groovy.antlr.parser.GroovyLexer;
-import org.codehaus.groovy.antlr.parser.GroovyRecognizer;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -34,10 +30,13 @@ import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.ErrorCollector;
+import org.codehaus.groovy.control.ParserPlugin;
 import org.codehaus.groovy.control.ResolveVisitor;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.ParserException;
 import org.codehaus.groovy.syntax.Reduction;
+import org.codehaus.groovy.transform.ErrorCollecting;
 import org.codehaus.groovy.transform.stc.StaticTypeCheckingSupport;
 
 import java.io.StringReader;
@@ -502,7 +501,14 @@ public class GenericsUtils {
             final SourceUnit sourceUnit,
             final CompilationUnit compilationUnit,
             final MethodNode mn,
-            final ASTNode usage) {
+            final ASTNode usage)
+    {
+        ErrorCollector collector = new ErrorCollector(sourceUnit.getConfiguration());
+        SourceUnit dummyUnit = new SourceUnit("parseClassNodesFromString", "DummyNode<" + option + ">", sourceUnit.getConfiguration(), sourceUnit.getClassLoader(), collector);
+        dummyUnit.convert();
+/*
+        ... get ClassNode and handleerrors in collector
+
         GroovyLexer lexer = new GroovyLexer(new StringReader("DummyNode<" + option + ">"));
         final GroovyRecognizer rn = GroovyRecognizer.make(lexer);
         try {
@@ -534,7 +540,7 @@ public class GenericsUtils {
             sourceUnit.addError(new IncorrectTypeHintException(mn, e, usage.getLineNumber(), usage.getColumnNumber()));
         } catch (ParserException e) {
             sourceUnit.addError(new IncorrectTypeHintException(mn, e, usage.getLineNumber(), usage.getColumnNumber()));
-        }
+        }*/
         return null;
     }
 

@@ -33,7 +33,8 @@ def subprojects = ['groovy-ant',
         'groovy-test',
         'groovy-testng',
         'groovy-xml',
-        'groovy-macro'
+        'groovy-macro',
+        'groovy-parser-antlr2',
 ]
 
 if (JavaVersion.current().isJava8Compatible()) {

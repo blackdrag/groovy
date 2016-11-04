@@ -26,29 +26,26 @@ import org.codehaus.groovy.syntax.ParserException;
  *
  */
 public class ASTParserException extends ParserException {
-    private final AST ast;
 
     public ASTParserException(ASTRuntimeException e) {
         super(e.getMessage(), e, e.getLine(), e.getColumn(), getLineLast(e), getColumnLast(e));
-        this.ast = e.getAst();
     }
 
     public ASTParserException(String message, ASTRuntimeException e) {
         super(message, e, e.getLine(), e.getColumn(), getLineLast(e), getColumnLast(e));
-        this.ast = e.getAst();
     }
 
-    public AST getAst() {
-        return ast;
+    public SourceInfo getSourceInfo() {
+        return ((ASTRuntimeException) getCause()).getSourceInfo();
     }
-    
+
     private static int getLineLast(ASTRuntimeException e) {
-        final AST ast = e.getAst();
-        return (ast instanceof SourceInfo) ? ((SourceInfo)ast).getLineLast() : ast.getLine();
+        final SourceInfo sourceInfo = e.getSourceInfo();
+        return (sourceInfo instanceof SourceInfo) ? ((SourceInfo)sourceInfo).getLineLast() : sourceInfo.getLine();
     }
 
     private static int getColumnLast(ASTRuntimeException e) {
-        final AST ast = e.getAst();
+        final SourceInfo ast = e.getSourceInfo();
         return (ast instanceof SourceInfo) ? ((SourceInfo)ast).getColumnLast() : ast.getColumn()+1;
     }
 }

@@ -18,38 +18,33 @@
  */
 package org.codehaus.groovy.antlr;
 
-import antlr.collections.AST;
-
-/**
- * @author <a href="mailto:jstrachan@protique.com">James Strachan</a>
- */
 public class ASTRuntimeException extends RuntimeException {
-    private final AST ast;
+    private final SourceInfo sourceInfo;
 
-    public ASTRuntimeException(AST ast, String message) {
-        super(message + description(ast));
-        this.ast = ast;
+    public ASTRuntimeException(SourceInfo sourceInfo, String message) {
+        super(message + description(sourceInfo));
+        this.sourceInfo = sourceInfo;
     }
 
-    public ASTRuntimeException(AST ast, String message, Throwable throwable) {
-        super(message + description(ast), throwable);
-        this.ast = null;
+    public ASTRuntimeException(SourceInfo sourceInfo, String message, Throwable throwable) {
+        super(message + description(sourceInfo), throwable);
+        this.sourceInfo = null;
     }
 
-    protected static String description(AST node) {
+    protected static String description(SourceInfo node) {
         return (node != null) ? " at line: " + node.getLine() + " column: " + node.getColumn() : "";
     }
 
-    public AST getAst() {
-        return ast;
+    public SourceInfo getSourceInfo() {
+        return sourceInfo;
     }
 
     public int getLine() {
-        return ast != null ? ast.getLine() : -1;
+        return sourceInfo != null ? sourceInfo.getLine() : -1;
     }
 
     public int getColumn() {
-        return ast != null ? ast.getColumn() : -1;
+        return sourceInfo != null ? sourceInfo.getColumn() : -1;
     }
 
 }
